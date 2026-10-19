@@ -1,6 +1,7 @@
 """
 Tests for the import_units management command.
 """
+
 import os
 import tempfile
 from io import StringIO
@@ -51,7 +52,9 @@ class TempFilesMixin:
     def write_tsv(self, name, rows, raw=None):
         path = os.path.join(self.tmpdir, name)
         with open(path, "w", encoding="utf-8") as fh:
-            fh.write(raw if raw is not None else "".join("\t".join(r) + "\n" for r in rows))
+            fh.write(
+                raw if raw is not None else "".join("\t".join(r) + "\n" for r in rows)
+            )
         return path
 
     def write_both(self, units=UNITS, relations=RELATIONS):
@@ -101,11 +104,13 @@ class ParseAndValidateTests(TempFilesMixin, SimpleTestCase):
     def test_status_is_translated(self):
         units, _ = self.parse()
         self.assertEqual(units["root"]["status"], UnitStatus.ACTIVE)
-        self.assertEqual(units["dept"]["status"], UnitStatus.INACTIVE)    # archived
+        self.assertEqual(units["dept"]["status"], UnitStatus.INACTIVE)  # archived
         self.assertEqual(units["journal"]["status"], UnitStatus.INACTIVE)  # hidden
 
     def test_names_are_stripped(self):
-        units, _ = self.parse(units=[("a", "  Padded Name  ", "oru", "active")], relations=[])
+        units, _ = self.parse(
+            units=[("a", "  Padded Name  ", "oru", "active")], relations=[]
+        )
         self.assertEqual(units["a"]["name"], "Padded Name")
 
     def test_duplicate_relations_are_collapsed(self):
@@ -122,13 +127,19 @@ class ParseAndValidateTests(TempFilesMixin, SimpleTestCase):
         self.assertProblem("duplicate unit id: ucb", units=UNITS + [UNITS[1]])
 
     def test_empty_name(self):
-        self.assertProblem("empty name", units=[("a", "", "oru", "active")], relations=[])
+        self.assertProblem(
+            "empty name", units=[("a", "", "oru", "active")], relations=[]
+        )
 
     def test_unknown_type(self):
-        self.assertProblem("unknown type 'bogus'", units=[("a", "A", "bogus", "active")], relations=[])
+        self.assertProblem(
+            "unknown type 'bogus'", units=[("a", "A", "bogus", "active")], relations=[]
+        )
 
     def test_unknown_status(self):
-        self.assertProblem("unknown status 'weird'", units=[("a", "A", "oru", "weird")], relations=[])
+        self.assertProblem(
+            "unknown status 'weird'", units=[("a", "A", "oru", "weird")], relations=[]
+        )
 
     def test_self_relation(self):
         self.assertProblem("itself", relations=[("ucb", "ucb")])
@@ -181,14 +192,19 @@ class ImportUnitsCommandTests(TempFilesMixin, TestCase):
         self.assertIn(f"Units: {len(UNITS)} created", out)
 
         ucb = self.unit("ucb")
-        self.assertEqual((ucb.name, ucb.type, ucb.status), ("UC Berkeley", UnitType.CAMPUS, UnitStatus.ACTIVE))
+        self.assertEqual(
+            (ucb.name, ucb.type, ucb.status),
+            ("UC Berkeley", UnitType.CAMPUS, UnitStatus.ACTIVE),
+        )
         self.assertEqual(self.unit("dept").status, UnitStatus.INACTIVE)
         self.assertEqual(self.unit("root").type, UnitType.ROOT)
 
     def test_legacy_ids_stored_as_external_identifiers(self):
         self.run_import()
         legacy = UnitExternalIdentifier.objects.filter(type=LEGACY)
-        self.assertEqual(set(legacy.values_list("value", flat=True)), {u[0] for u in UNITS})
+        self.assertEqual(
+            set(legacy.values_list("value", flat=True)), {u[0] for u in UNITS}
+        )
         self.assertEqual(legacy.count(), len(UNITS))
 
     def test_new_public_uids_are_generated_not_legacy_ids(self):
@@ -219,7 +235,9 @@ class ImportUnitsCommandTests(TempFilesMixin, TestCase):
 
         self.assertEqual(set(Unit.objects.values_list("pk", "uid")), before_units)
         self.assertEqual(UnitHierarchyEdge.objects.count(), before_edges)
-        self.assertEqual(UnitExternalIdentifier.objects.filter(type=LEGACY).count(), len(UNITS))
+        self.assertEqual(
+            UnitExternalIdentifier.objects.filter(type=LEGACY).count(), len(UNITS)
+        )
         self.assertIn(f"0 created, 0 updated, {len(UNITS)} unchanged", out)
         self.assertIn(f"0 added, {len(RELATIONS)} already present", out)
 
@@ -227,11 +245,17 @@ class ImportUnitsCommandTests(TempFilesMixin, TestCase):
         self.run_import()
         original_uid = self.unit("dept").uid
 
-        changed = [u if u[0] != "dept" else ("dept", "Art & Design", "series", "active") for u in UNITS]
+        changed = [
+            u if u[0] != "dept" else ("dept", "Art & Design", "series", "active")
+            for u in UNITS
+        ]
         out, _ = self.run_import(units=changed)
 
         dept = self.unit("dept")
-        self.assertEqual((dept.name, dept.type, dept.status), ("Art & Design", UnitType.SERIES, UnitStatus.ACTIVE))
+        self.assertEqual(
+            (dept.name, dept.type, dept.status),
+            ("Art & Design", UnitType.SERIES, UnitStatus.ACTIVE),
+        )
         self.assertEqual(dept.uid, original_uid)
         self.assertIn("1 updated", out)
         self.assertEqual(Unit.objects.count(), len(UNITS))
@@ -262,7 +286,9 @@ class ImportUnitsCommandTests(TempFilesMixin, TestCase):
     def test_other_identifier_types_do_not_match(self):
         # A ROR id that happens to equal a legacy id must not be treated as the legacy id.
         other = Unit.objects.create(name="Unrelated", type=UnitType.ORU)
-        UnitExternalIdentifier.objects.create(unit=other, type=ExternalIdentifierType.ROR, value="ucb")
+        UnitExternalIdentifier.objects.create(
+            unit=other, type=ExternalIdentifierType.ROR, value="ucb"
+        )
 
         self.run_import()
 
@@ -274,14 +300,18 @@ class ImportUnitsCommandTests(TempFilesMixin, TestCase):
     def test_dry_run_persists_nothing(self):
         out, _ = self.run_import(dry_run=True)
         self.assertIn("Dry run", out)
-        self.assertIn(f"Units: {len(UNITS)} created", out)  # still reports what would happen
+        self.assertIn(
+            f"Units: {len(UNITS)} created", out
+        )  # still reports what would happen
         self.assertEqual(Unit.objects.count(), 0)
         self.assertEqual(UnitExternalIdentifier.objects.count(), 0)
         self.assertEqual(UnitHierarchyEdge.objects.count(), 0)
 
     def test_dry_run_does_not_modify_existing_data(self):
         self.run_import()
-        changed = [u if u[0] != "dept" else ("dept", "Renamed", "oru", "active") for u in UNITS]
+        changed = [
+            u if u[0] != "dept" else ("dept", "Renamed", "oru", "active") for u in UNITS
+        ]
         self.run_import(units=changed, dry_run=True)
         self.assertEqual(self.unit("dept").name, "Department of Art")
 
@@ -308,7 +338,11 @@ class ImportUnitsCommandTests(TempFilesMixin, TestCase):
 
     # ---- cycles ---------------------------------------------------------- #
     def test_cycle_is_reported_and_other_edges_still_imported(self):
-        units = [("a", "A", "oru", "active"), ("b", "B", "oru", "active"), ("c", "C", "oru", "active")]
+        units = [
+            ("a", "A", "oru", "active"),
+            ("b", "B", "oru", "active"),
+            ("c", "C", "oru", "active"),
+        ]
         # parent->child edges: a->b, b->c, c->a  (the last one closes a cycle)
         relations = [("b", "a"), ("c", "b"), ("a", "c")]
 

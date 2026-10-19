@@ -22,6 +22,7 @@ How it maps onto the data model:
 All input is validated before anything is written. Everything is written in
 one transaction; --dry-run rolls it back.
 """
+
 import csv
 
 from django.core.exceptions import ValidationError
@@ -114,12 +115,18 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument("units_file", help="all_units.tsv (id, name, type, status)")
-        parser.add_argument("relations_file", help="all_relations.tsv (child_id, parent_id)")
-        parser.add_argument("--dry-run", action="store_true", help="Process, then roll back.")
+        parser.add_argument(
+            "relations_file", help="all_relations.tsv (child_id, parent_id)"
+        )
+        parser.add_argument(
+            "--dry-run", action="store_true", help="Process, then roll back."
+        )
 
     def handle(self, *args, **opts):
         units, edges = parse_and_validate(opts["units_file"], opts["relations_file"])
-        self.stdout.write(f"Read {len(units)} units and {len(edges)} parent/child relations.")
+        self.stdout.write(
+            f"Read {len(units)} units and {len(edges)} parent/child relations."
+        )
 
         created = updated = unchanged = edges_added = edges_existing = edges_failed = 0
 
@@ -142,8 +149,16 @@ class Command(BaseCommand):
                     )
                     by_legacy[legacy_id] = unit
                     created += 1
-                elif (unit.name, unit.type, unit.status) != (d["name"], d["type"], d["status"]):
-                    unit.name, unit.type, unit.status = d["name"], d["type"], d["status"]
+                elif (unit.name, unit.type, unit.status) != (
+                    d["name"],
+                    d["type"],
+                    d["status"],
+                ):
+                    unit.name, unit.type, unit.status = (
+                        d["name"],
+                        d["type"],
+                        d["status"],
+                    )
                     unit.save()
                     updated += 1
                 else:
@@ -165,16 +180,20 @@ class Command(BaseCommand):
                         UnitHierarchyEdge(parent=parent, child=child).save()
                     edges_added += 1
                 except (ValidationError, IntegrityError) as exc:
-                    self.stderr.write(self.style.WARNING(
-                        f"Could not add {parent_id} -> {child_id}: {exc}"
-                    ))
+                    self.stderr.write(
+                        self.style.WARNING(
+                            f"Could not add {parent_id} -> {child_id}: {exc}"
+                        )
+                    )
                     edges_failed += 1
 
             if opts["dry_run"]:
                 transaction.set_rollback(True)
                 self.stdout.write(self.style.WARNING("Dry run: changes rolled back."))
 
-        self.stdout.write(self.style.SUCCESS(
-            f"Units: {created} created, {updated} updated, {unchanged} unchanged. "
-            f"Edges: {edges_added} added, {edges_existing} already present, {edges_failed} failed."
-        ))
+        self.stdout.write(
+            self.style.SUCCESS(
+                f"Units: {created} created, {updated} updated, {unchanged} unchanged. "
+                f"Edges: {edges_added} added, {edges_existing} already present, {edges_failed} failed."
+            )
+        )

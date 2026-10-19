@@ -61,7 +61,9 @@ class HierarchyEdgeFormSet(BaseInlineFormSet):
             if other is None:
                 continue
             if other.pk in seen:
-                form.add_error(self.other_field, f"{other.name} is listed more than once.")
+                form.add_error(
+                    self.other_field, f"{other.name} is listed more than once."
+                )
                 continue
             seen.add(other.pk)
             if form.has_changed():

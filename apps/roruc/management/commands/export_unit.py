@@ -10,6 +10,7 @@ Notes on fields ROR requires or defines that our model doesn't have:
   * ``locations`` is emitted as [] (ROR requires at least one for its own registry).
   * ``established`` is omitted.
 """
+
 import json
 import sys
 
@@ -27,18 +28,27 @@ from ...models import (
 def find_unit(identifier):
     """Look a unit up by uid, falling back to any external identifier value."""
     qs = Unit.objects.prefetch_related(
-        "alternate_names", "external_ids", "parents", "children", "predecessors", "successors"
+        "alternate_names",
+        "external_ids",
+        "parents",
+        "children",
+        "predecessors",
+        "successors",
     )
     unit = qs.filter(uid=identifier).first()
     if unit:
         return unit
 
-    matches = UnitExternalIdentifier.objects.filter(value=identifier).values_list(
-        "unit_id", flat=True
-    ).distinct()
+    matches = (
+        UnitExternalIdentifier.objects.filter(value=identifier)
+        .values_list("unit_id", flat=True)
+        .distinct()
+    )
     ids = list(matches)
     if len(ids) > 1:
-        raise CommandError(f"'{identifier}' matches several units' external identifiers.")
+        raise CommandError(
+            f"'{identifier}' matches several units' external identifiers."
+        )
     if ids:
         return qs.get(pk=ids[0])
     raise CommandError(f"No unit with uid or external identifier '{identifier}'.")
@@ -48,9 +58,15 @@ class Command(BaseCommand):
     help = "Export a single unit as a ROR-format JSON record."
 
     def add_arguments(self, parser):
-        parser.add_argument("unit", help="Unit uid, or an external identifier value (e.g. 'westjem').")
-        parser.add_argument("-o", "--output", help="Write to this file instead of stdout.")
-        parser.add_argument("--indent", type=int, default=2, help="JSON indent (default 2).")
+        parser.add_argument(
+            "unit", help="Unit uid, or an external identifier value (e.g. 'westjem')."
+        )
+        parser.add_argument(
+            "-o", "--output", help="Write to this file instead of stdout."
+        )
+        parser.add_argument(
+            "--indent", type=int, default=2, help="JSON indent (default 2)."
+        )
         parser.add_argument(
             "--id-prefix",
             default=getattr(settings, "ROR_ID_PREFIX", DEFAULT_ID_PREFIX),

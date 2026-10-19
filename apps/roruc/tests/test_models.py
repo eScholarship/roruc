@@ -6,6 +6,7 @@ Run with: python manage.py test <your_app>
 
 Needs a PostgreSQL test database (ArrayField, GinIndex, django-postgresql-dag).
 """
+
 from unittest import mock
 
 from django.core.exceptions import ValidationError
@@ -109,7 +110,8 @@ class UnitTests(TestCase):
         make_unit("Alpha")
         make_unit("Bravo")
         self.assertEqual(
-            list(Unit.objects.values_list("name", flat=True)), ["Alpha", "Bravo", "Charlie"]
+            list(Unit.objects.values_list("name", flat=True)),
+            ["Alpha", "Bravo", "Charlie"],
         )
 
     def test_invalid_type_fails_validation(self):
@@ -152,7 +154,11 @@ class HierarchyTests(TestCase):
             a.add_child(a)
 
     def test_descendants_and_ancestors(self):
-        root, campus, oru = make_unit("Root", UnitType.ROOT), make_unit("Campus"), make_unit("ORU")
+        root, campus, oru = (
+            make_unit("Root", UnitType.ROOT),
+            make_unit("Campus"),
+            make_unit("ORU"),
+        )
         root.add_child(campus)
         campus.add_child(oru)
         self.assertEqual(set(root.descendants()), {campus, oru})
@@ -165,8 +171,12 @@ class HierarchyTests(TestCase):
 class AlternateNameTests(TestCase):
     def test_names_lists_label_first_then_alternates_ordered(self):
         unit = make_unit("Department of Art")
-        UnitAlternateName.objects.create(unit=unit, type=AlternateNameType.ALIAS, value="Art Dept")
-        UnitAlternateName.objects.create(unit=unit, type=AlternateNameType.ACRONYM, value="DoA")
+        UnitAlternateName.objects.create(
+            unit=unit, type=AlternateNameType.ALIAS, value="Art Dept"
+        )
+        UnitAlternateName.objects.create(
+            unit=unit, type=AlternateNameType.ACRONYM, value="DoA"
+        )
         self.assertEqual(
             unit.names(),
             [
@@ -182,20 +192,32 @@ class AlternateNameTests(TestCase):
 
     def test_duplicate_alternate_name_rejected(self):
         unit = make_unit()
-        UnitAlternateName.objects.create(unit=unit, type=AlternateNameType.ALIAS, value="X")
+        UnitAlternateName.objects.create(
+            unit=unit, type=AlternateNameType.ALIAS, value="X"
+        )
         with self.assertRaises(IntegrityError), transaction.atomic():
-            UnitAlternateName.objects.create(unit=unit, type=AlternateNameType.ALIAS, value="X")
+            UnitAlternateName.objects.create(
+                unit=unit, type=AlternateNameType.ALIAS, value="X"
+            )
 
     def test_same_value_allowed_for_different_type_or_unit(self):
         a, b = make_unit("A"), make_unit("B")
-        UnitAlternateName.objects.create(unit=a, type=AlternateNameType.ALIAS, value="X")
-        UnitAlternateName.objects.create(unit=a, type=AlternateNameType.ACRONYM, value="X")
-        UnitAlternateName.objects.create(unit=b, type=AlternateNameType.ALIAS, value="X")
+        UnitAlternateName.objects.create(
+            unit=a, type=AlternateNameType.ALIAS, value="X"
+        )
+        UnitAlternateName.objects.create(
+            unit=a, type=AlternateNameType.ACRONYM, value="X"
+        )
+        UnitAlternateName.objects.create(
+            unit=b, type=AlternateNameType.ALIAS, value="X"
+        )
         self.assertEqual(UnitAlternateName.objects.count(), 3)
 
     def test_deleting_unit_cascades(self):
         unit = make_unit()
-        UnitAlternateName.objects.create(unit=unit, type=AlternateNameType.ALIAS, value="X")
+        UnitAlternateName.objects.create(
+            unit=unit, type=AlternateNameType.ALIAS, value="X"
+        )
         unit.delete()
         self.assertEqual(UnitAlternateName.objects.count(), 0)
 
@@ -213,7 +235,9 @@ class AlternateNameTests(TestCase):
 class ExternalIdentifierTests(TestCase):
     def test_identifier_identifies_exactly_one_unit(self):
         a, b = make_unit("A"), make_unit("B")
-        UnitExternalIdentifier.objects.create(unit=a, type=ExternalIdentifierType.ROR, value="abc")
+        UnitExternalIdentifier.objects.create(
+            unit=a, type=ExternalIdentifierType.ROR, value="abc"
+        )
         with self.assertRaises(IntegrityError), transaction.atomic():
             UnitExternalIdentifier.objects.create(
                 unit=b, type=ExternalIdentifierType.ROR, value="abc"
@@ -221,14 +245,22 @@ class ExternalIdentifierTests(TestCase):
 
     def test_same_value_different_type_allowed(self):
         a, b = make_unit("A"), make_unit("B")
-        UnitExternalIdentifier.objects.create(unit=a, type=ExternalIdentifierType.ROR, value="abc")
-        UnitExternalIdentifier.objects.create(unit=b, type=ExternalIdentifierType.GRID, value="abc")
+        UnitExternalIdentifier.objects.create(
+            unit=a, type=ExternalIdentifierType.ROR, value="abc"
+        )
+        UnitExternalIdentifier.objects.create(
+            unit=b, type=ExternalIdentifierType.GRID, value="abc"
+        )
         self.assertEqual(UnitExternalIdentifier.objects.count(), 2)
 
     def test_unit_can_have_several_identifiers(self):
         unit = make_unit()
-        UnitExternalIdentifier.objects.create(unit=unit, type=ExternalIdentifierType.ROR, value="r")
-        UnitExternalIdentifier.objects.create(unit=unit, type=ExternalIdentifierType.ISNI, value="i")
+        UnitExternalIdentifier.objects.create(
+            unit=unit, type=ExternalIdentifierType.ROR, value="r"
+        )
+        UnitExternalIdentifier.objects.create(
+            unit=unit, type=ExternalIdentifierType.ISNI, value="i"
+        )
         self.assertEqual(unit.external_ids.count(), 2)
 
     def test_legacy_lookup(self):
@@ -254,7 +286,10 @@ class ExternalIdentifierTests(TestCase):
 # --------------------------------------------------------------------------- #
 class SuccessionTests(TestCase):
     def test_successors_and_predecessors(self):
-        old, new = make_unit("Old Journal", UnitType.JOURNAL), make_unit("New Journal", UnitType.JOURNAL)
+        old, new = (
+            make_unit("Old Journal", UnitType.JOURNAL),
+            make_unit("New Journal", UnitType.JOURNAL),
+        )
         UnitSuccession.objects.create(predecessor=old, successor=new)
         self.assertEqual(list(old.successors.all()), [new])
         self.assertEqual(list(new.predecessors.all()), [old])
@@ -321,7 +356,9 @@ class RelationTests(TestCase):
     def test_check_constraint_enforces_canonical_order(self):
         # bulk_create bypasses save(), so the DB constraint is the only guard.
         with self.assertRaises(IntegrityError), transaction.atomic():
-            UnitRelation.objects.bulk_create([UnitRelation(unit_a=self.high, unit_b=self.low)])
+            UnitRelation.objects.bulk_create(
+                [UnitRelation(unit_a=self.high, unit_b=self.low)]
+            )
 
     def test_add_related_is_symmetric_and_idempotent(self):
         self.a.add_related(self.b)
@@ -384,11 +421,24 @@ class RelationshipsTests(TestCase):
         )
 
     def test_relationships_report_both_directions(self):
-        self.assertIn(("child", self.unit.uid, "Unit"), self.as_set(self.parent.relationships()))
-        self.assertIn(("parent", self.unit.uid, "Unit"), self.as_set(self.child.relationships()))
-        self.assertIn(("successor", self.unit.uid, "Unit"), self.as_set(self.predecessor.relationships()))
-        self.assertIn(("predecessor", self.unit.uid, "Unit"), self.as_set(self.successor.relationships()))
-        self.assertIn(("related", self.unit.uid, "Unit"), self.as_set(self.related.relationships()))
+        self.assertIn(
+            ("child", self.unit.uid, "Unit"), self.as_set(self.parent.relationships())
+        )
+        self.assertIn(
+            ("parent", self.unit.uid, "Unit"), self.as_set(self.child.relationships())
+        )
+        self.assertIn(
+            ("successor", self.unit.uid, "Unit"),
+            self.as_set(self.predecessor.relationships()),
+        )
+        self.assertIn(
+            ("predecessor", self.unit.uid, "Unit"),
+            self.as_set(self.successor.relationships()),
+        )
+        self.assertIn(
+            ("related", self.unit.uid, "Unit"),
+            self.as_set(self.related.relationships()),
+        )
 
     def test_relationships_use_public_uid_not_pk(self):
         for rel in self.unit.relationships():

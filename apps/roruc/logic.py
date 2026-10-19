@@ -3,9 +3,14 @@ from urllib.parse import urlparse
 SCHEMA_VERSION = "2.1"
 DEFAULT_ID_PREFIX = "https://ror.org/"
 
+
 def link_type(url):
     host = (urlparse(url).hostname or "").lower()
-    return "wikipedia" if host == "wikipedia.org" or host.endswith(".wikipedia.org") else "website"
+    return (
+        "wikipedia"
+        if host == "wikipedia.org" or host.endswith(".wikipedia.org")
+        else "website"
+    )
 
 
 def unit_to_ror(unit, id_prefix=DEFAULT_ID_PREFIX, include_unit_type=False):

@@ -8,125 +8,342 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='Unit',
+            name="Unit",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('uid', models.CharField(default=apps.roruc.models.generate_uid, editable=False, help_text='Opaque public identifier. Never changes once assigned.', max_length=8, unique=True)),
-                ('name', models.CharField(help_text="Primary name (serialized as type 'label').", max_length=500)),
-                ('type', models.CharField(choices=[('root', 'Root'), ('campus', 'Campus'), ('oru', 'Organized research unit'), ('journal', 'Journal'), ('series', 'Series'), ('monograph_series', 'Monograph series'), ('seminar_series', 'Seminar series'), ('conference_proceedings', 'Conference proceedings')], max_length=32)),
-                ('status', models.CharField(choices=[('active', 'Active'), ('inactive', 'Inactive'), ('withdrawn', 'Withdrawn')], default='active', max_length=16)),
-                ('domains', django.contrib.postgres.fields.ArrayField(base_field=models.CharField(max_length=255), blank=True, default=list)),
-                ('links', django.contrib.postgres.fields.ArrayField(base_field=models.URLField(max_length=500), blank=True, default=list)),
-                ('created', models.DateTimeField(auto_now_add=True)),
-                ('modified', models.DateTimeField(auto_now=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "uid",
+                    models.CharField(
+                        default=apps.roruc.models.generate_uid,
+                        editable=False,
+                        help_text="Opaque public identifier. Never changes once assigned.",
+                        max_length=8,
+                        unique=True,
+                    ),
+                ),
+                (
+                    "name",
+                    models.CharField(
+                        help_text="Primary name (serialized as type 'label').",
+                        max_length=500,
+                    ),
+                ),
+                (
+                    "type",
+                    models.CharField(
+                        choices=[
+                            ("root", "Root"),
+                            ("campus", "Campus"),
+                            ("oru", "Organized research unit"),
+                            ("journal", "Journal"),
+                            ("series", "Series"),
+                            ("monograph_series", "Monograph series"),
+                            ("seminar_series", "Seminar series"),
+                            ("conference_proceedings", "Conference proceedings"),
+                        ],
+                        max_length=32,
+                    ),
+                ),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("active", "Active"),
+                            ("inactive", "Inactive"),
+                            ("withdrawn", "Withdrawn"),
+                        ],
+                        default="active",
+                        max_length=16,
+                    ),
+                ),
+                (
+                    "domains",
+                    django.contrib.postgres.fields.ArrayField(
+                        base_field=models.CharField(max_length=255),
+                        blank=True,
+                        default=list,
+                    ),
+                ),
+                (
+                    "links",
+                    django.contrib.postgres.fields.ArrayField(
+                        base_field=models.URLField(max_length=500),
+                        blank=True,
+                        default=list,
+                    ),
+                ),
+                ("created", models.DateTimeField(auto_now_add=True)),
+                ("modified", models.DateTimeField(auto_now=True)),
             ],
             options={
-                'ordering': ['name'],
+                "ordering": ["name"],
             },
         ),
         migrations.CreateModel(
-            name='UnitHierarchyEdge',
+            name="UnitHierarchyEdge",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('child', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='parent_edges', to='roruc.unit')),
-                ('parent', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='children_edges', to='roruc.unit')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "child",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="parent_edges",
+                        to="roruc.unit",
+                    ),
+                ),
+                (
+                    "parent",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="children_edges",
+                        to="roruc.unit",
+                    ),
+                ),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
         ),
         migrations.AddField(
-            model_name='unit',
-            name='children',
-            field=models.ManyToManyField(blank=True, related_name='parents', through='roruc.UnitHierarchyEdge', to='roruc.unit'),
+            model_name="unit",
+            name="children",
+            field=models.ManyToManyField(
+                blank=True,
+                related_name="parents",
+                through="roruc.UnitHierarchyEdge",
+                to="roruc.unit",
+            ),
         ),
         migrations.CreateModel(
-            name='UnitRelation',
+            name="UnitRelation",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('unit_a', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='relations_as_a', to='roruc.unit')),
-                ('unit_b', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='relations_as_b', to='roruc.unit')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "unit_a",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="relations_as_a",
+                        to="roruc.unit",
+                    ),
+                ),
+                (
+                    "unit_b",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="relations_as_b",
+                        to="roruc.unit",
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='UnitSuccession',
+            name="UnitSuccession",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('effective_date', models.DateField(blank=True, null=True)),
-                ('note', models.TextField(blank=True)),
-                ('predecessor', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='succession_links_out', to='roruc.unit')),
-                ('successor', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='succession_links_in', to='roruc.unit')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("effective_date", models.DateField(blank=True, null=True)),
+                ("note", models.TextField(blank=True)),
+                (
+                    "predecessor",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="succession_links_out",
+                        to="roruc.unit",
+                    ),
+                ),
+                (
+                    "successor",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="succession_links_in",
+                        to="roruc.unit",
+                    ),
+                ),
             ],
         ),
         migrations.AddField(
-            model_name='unit',
-            name='successors',
-            field=models.ManyToManyField(blank=True, related_name='predecessors', through='roruc.UnitSuccession', through_fields=('predecessor', 'successor'), to='roruc.unit'),
+            model_name="unit",
+            name="successors",
+            field=models.ManyToManyField(
+                blank=True,
+                related_name="predecessors",
+                through="roruc.UnitSuccession",
+                through_fields=("predecessor", "successor"),
+                to="roruc.unit",
+            ),
         ),
         migrations.CreateModel(
-            name='UnitAlternateName',
+            name="UnitAlternateName",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('type', models.CharField(choices=[('acronym', 'Acronym'), ('alias', 'Alias'), ('previous_name', 'Previous name')], max_length=16)),
-                ('value', models.CharField(max_length=500)),
-                ('unit', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='alternate_names', to='roruc.unit')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "type",
+                    models.CharField(
+                        choices=[
+                            ("acronym", "Acronym"),
+                            ("alias", "Alias"),
+                            ("previous_name", "Previous name"),
+                        ],
+                        max_length=16,
+                    ),
+                ),
+                ("value", models.CharField(max_length=500)),
+                (
+                    "unit",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="alternate_names",
+                        to="roruc.unit",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['type', 'value'],
-                'constraints': [models.UniqueConstraint(fields=('unit', 'type', 'value'), name='unit_alt_name_unique')],
+                "ordering": ["type", "value"],
+                "constraints": [
+                    models.UniqueConstraint(
+                        fields=("unit", "type", "value"), name="unit_alt_name_unique"
+                    )
+                ],
             },
         ),
         migrations.CreateModel(
-            name='UnitExternalIdentifier',
+            name="UnitExternalIdentifier",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('type', models.CharField(choices=[('fundref', 'Crossref Funder Registry'), ('grid', 'GRID'), ('isni', 'ISNI'), ('wikidata', 'Wikidata'), ('ror', 'ROR'), ('escholarship', 'eScholarship (legacy unit id)')], max_length=16)),
-                ('value', models.CharField(max_length=255)),
-                ('unit', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='external_ids', to='roruc.unit')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "type",
+                    models.CharField(
+                        choices=[
+                            ("fundref", "Crossref Funder Registry"),
+                            ("grid", "GRID"),
+                            ("isni", "ISNI"),
+                            ("wikidata", "Wikidata"),
+                            ("ror", "ROR"),
+                            ("escholarship", "eScholarship (legacy unit id)"),
+                        ],
+                        max_length=16,
+                    ),
+                ),
+                ("value", models.CharField(max_length=255)),
+                (
+                    "unit",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="external_ids",
+                        to="roruc.unit",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['type', 'value'],
-                'constraints': [models.UniqueConstraint(fields=('type', 'value'), name='unit_ext_id_unique')],
+                "ordering": ["type", "value"],
+                "constraints": [
+                    models.UniqueConstraint(
+                        fields=("type", "value"), name="unit_ext_id_unique"
+                    )
+                ],
             },
         ),
         migrations.AddIndex(
-            model_name='unithierarchyedge',
-            index=models.Index(fields=['parent', 'child'], name='roruc_unith_parent__2f4ba9_idx'),
+            model_name="unithierarchyedge",
+            index=models.Index(
+                fields=["parent", "child"], name="roruc_unith_parent__2f4ba9_idx"
+            ),
         ),
         migrations.AddIndex(
-            model_name='unithierarchyedge',
-            index=models.Index(fields=['child', 'parent'], name='roruc_unith_child_i_cc4b82_idx'),
+            model_name="unithierarchyedge",
+            index=models.Index(
+                fields=["child", "parent"], name="roruc_unith_child_i_cc4b82_idx"
+            ),
         ),
         migrations.AddConstraint(
-            model_name='unitrelation',
-            constraint=models.UniqueConstraint(fields=('unit_a', 'unit_b'), name='unit_relation_unique'),
+            model_name="unitrelation",
+            constraint=models.UniqueConstraint(
+                fields=("unit_a", "unit_b"), name="unit_relation_unique"
+            ),
         ),
         migrations.AddConstraint(
-            model_name='unitrelation',
-            constraint=models.CheckConstraint(condition=models.Q(('unit_a__lt', models.F('unit_b'))), name='unit_relation_canonical_order'),
+            model_name="unitrelation",
+            constraint=models.CheckConstraint(
+                condition=models.Q(("unit_a__lt", models.F("unit_b"))),
+                name="unit_relation_canonical_order",
+            ),
         ),
         migrations.AddConstraint(
-            model_name='unitsuccession',
-            constraint=models.UniqueConstraint(fields=('predecessor', 'successor'), name='unit_succession_unique'),
+            model_name="unitsuccession",
+            constraint=models.UniqueConstraint(
+                fields=("predecessor", "successor"), name="unit_succession_unique"
+            ),
         ),
         migrations.AddConstraint(
-            model_name='unitsuccession',
-            constraint=models.CheckConstraint(condition=models.Q(('predecessor', models.F('successor')), _negated=True), name='unit_succession_not_self'),
+            model_name="unitsuccession",
+            constraint=models.CheckConstraint(
+                condition=models.Q(
+                    ("predecessor", models.F("successor")), _negated=True
+                ),
+                name="unit_succession_not_self",
+            ),
         ),
         migrations.AddIndex(
-            model_name='unit',
-            index=django.contrib.postgres.indexes.GinIndex(fields=['domains'], name='unit_domains_gin'),
+            model_name="unit",
+            index=django.contrib.postgres.indexes.GinIndex(
+                fields=["domains"], name="unit_domains_gin"
+            ),
         ),
         migrations.AddIndex(
-            model_name='unit',
-            index=models.Index(fields=['type', 'status'], name='unit_type_status_idx'),
+            model_name="unit",
+            index=models.Index(fields=["type", "status"], name="unit_type_status_idx"),
         ),
     ]

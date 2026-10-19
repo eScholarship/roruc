@@ -7,6 +7,7 @@ Usage:
     python manage.py export_units --id-prefix https://ror.example.edu/
 
 """
+
 import json
 import sys
 
@@ -16,17 +17,22 @@ from django.core.management.base import BaseCommand
 from ...logic import DEFAULT_ID_PREFIX, unit_to_ror
 from ...models import Unit, UnitStatus
 
+
 class Command(BaseCommand):
     help = "Export all units as a ROR-format JSON."
 
     def add_arguments(self, parser):
         parser.add_argument(
-            '--export-all', 
-            action='store_true', 
-            help='If used export all units regardless of status else export only active'
+            "--export-all",
+            action="store_true",
+            help="If used export all units regardless of status else export only active",
         )
-        parser.add_argument("-o", "--output", help="Write to this file instead of stdout.")
-        parser.add_argument("--indent", type=int, default=2, help="JSON indent (default 2).")
+        parser.add_argument(
+            "-o", "--output", help="Write to this file instead of stdout."
+        )
+        parser.add_argument(
+            "--indent", type=int, default=2, help="JSON indent (default 2)."
+        )
         parser.add_argument(
             "--id-prefix",
             default=getattr(settings, "ROR_ID_PREFIX", DEFAULT_ID_PREFIX),
@@ -37,7 +43,6 @@ class Command(BaseCommand):
             action="store_true",
             help="Add our own unit type as a non-ROR 'unit_type' key.",
         )
-
 
     def handle(self, *args, **opts):
         if opts.get("export_all", False):

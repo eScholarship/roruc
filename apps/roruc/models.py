@@ -1,6 +1,7 @@
 """
 Unit data model.
 """
+
 import secrets
 
 from django.contrib.postgres.fields import ArrayField
@@ -67,7 +68,9 @@ class Unit(node_factory(UnitHierarchyEdge)):
         default=generate_uid,
         help_text="Opaque public identifier. Never changes once assigned.",
     )
-    name = models.CharField(max_length=500, help_text="Primary name (serialized as type 'label').")
+    name = models.CharField(
+        max_length=500, help_text="Primary name (serialized as type 'label')."
+    )
     type = models.CharField(max_length=32, choices=UnitType.choices)
     status = models.CharField(
         max_length=16, choices=UnitStatus.choices, default=UnitStatus.ACTIVE
@@ -103,10 +106,14 @@ class Unit(node_factory(UnitHierarchyEdge)):
             while Unit.objects.filter(uid=self.uid).exists():
                 self.uid = generate_uid()
         else:
-            stored = Unit.objects.filter(pk=self.pk).values_list("uid", flat=True).first()
+            stored = (
+                Unit.objects.filter(pk=self.pk).values_list("uid", flat=True).first()
+            )
             if stored and stored != self.uid:
                 raise ValueError("Unit.uid is immutable once assigned.")
-        self.domains = sorted({d.strip().lower() for d in self.domains if d and d.strip()})
+        self.domains = sorted(
+            {d.strip().lower() for d in self.domains if d and d.strip()}
+        )
         super().save(*args, **kwargs)
 
     def related_units(self):
@@ -116,7 +123,9 @@ class Unit(node_factory(UnitHierarchyEdge)):
         ).distinct()
 
     def add_related(self, other):
-        return UnitRelation.objects.get_or_create(**UnitRelation.canonical(self, other))[0]
+        return UnitRelation.objects.get_or_create(
+            **UnitRelation.canonical(self, other)
+        )[0]
 
     def names(self):
         """ROR-style names list: the label first, then alternate names."""
@@ -128,6 +137,7 @@ class Unit(node_factory(UnitHierarchyEdge)):
 
     def relationships(self):
         """Both directions of every relationship, e.g. a child also reports its parent."""
+
         def rel(kind, units):
             return [{"type": kind, "id": u.uid, "label": u.name} for u in units]
 
@@ -144,7 +154,9 @@ class Unit(node_factory(UnitHierarchyEdge)):
 # Multi-valued attributes
 # --------------------------------------------------------------------------- #
 class UnitAlternateName(models.Model):
-    unit = models.ForeignKey(Unit, on_delete=models.CASCADE, related_name="alternate_names")
+    unit = models.ForeignKey(
+        Unit, on_delete=models.CASCADE, related_name="alternate_names"
+    )
     type = models.CharField(max_length=16, choices=AlternateNameType.choices)
     value = models.CharField(max_length=500)
 
@@ -161,7 +173,9 @@ class UnitAlternateName(models.Model):
 
 
 class UnitExternalIdentifier(models.Model):
-    unit = models.ForeignKey(Unit, on_delete=models.CASCADE, related_name="external_ids")
+    unit = models.ForeignKey(
+        Unit, on_delete=models.CASCADE, related_name="external_ids"
+    )
     type = models.CharField(max_length=16, choices=ExternalIdentifierType.choices)
     value = models.CharField(max_length=255)
 
@@ -197,7 +211,8 @@ class UnitSuccession(models.Model):
                 fields=["predecessor", "successor"], name="unit_succession_unique"
             ),
             models.CheckConstraint(
-                condition=~Q(predecessor=F("successor")), name="unit_succession_not_self"
+                condition=~Q(predecessor=F("successor")),
+                name="unit_succession_not_self",
             ),
         ]
 
@@ -208,14 +223,21 @@ class UnitSuccession(models.Model):
 class UnitRelation(models.Model):
     """Symmetric 'related' link, stored once with unit_a.pk < unit_b.pk."""
 
-    unit_a = models.ForeignKey(Unit, on_delete=models.CASCADE, related_name="relations_as_a")
-    unit_b = models.ForeignKey(Unit, on_delete=models.CASCADE, related_name="relations_as_b")
+    unit_a = models.ForeignKey(
+        Unit, on_delete=models.CASCADE, related_name="relations_as_a"
+    )
+    unit_b = models.ForeignKey(
+        Unit, on_delete=models.CASCADE, related_name="relations_as_b"
+    )
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=["unit_a", "unit_b"], name="unit_relation_unique"),
+            models.UniqueConstraint(
+                fields=["unit_a", "unit_b"], name="unit_relation_unique"
+            ),
             models.CheckConstraint(
-                condition=Q(unit_a__lt=F("unit_b")), name="unit_relation_canonical_order"
+                condition=Q(unit_a__lt=F("unit_b")),
+                name="unit_relation_canonical_order",
             ),
         ]
 
