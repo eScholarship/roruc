@@ -19,6 +19,7 @@ DB_PASSWORD=<your-password>
 prd:
 ```
 SECRET_KEY='your-secret-key'
+HOST_URL=<your-host-url>
 DB_HOST=
 DB_PASSWORD=
 ```
@@ -29,6 +30,7 @@ docker run --name postgres -e POSTGRES_PASSWORD=<your-password> -d postgres
 Install requirements and setup db
 ```
 pip install -r requirements.txt
+pre-commit install
 python ./manage.py migrate
 python ./manage.py runserver
 ```
