@@ -1,5 +1,5 @@
 # RORUC
-
+## Setup
 - [Install pyenv](https://github.com/pyenv/pyenv?tab=readme-ov-file#installation)
 - [pyenv-virtualenv](https://github.com/pyenv/pyenv-virtualenv)
 - Install python 3.14 and create virtualenv
@@ -33,4 +33,23 @@ pip install -r requirements.txt
 pre-commit install
 python ./manage.py migrate
 python ./manage.py runserver
+```
+## Tests
+Run tests
+```
+python ./manage test
+```
+## Management commands
+```
+python manage.py import_units all_units.tsv all_relations.tsv (--dry-run)
+
+python manage.py export_unit 7k3m9x2q (-o unit.json) (--id-prefix  https://our-ror.example.edu/)
+python manage.py export_unit westjem (-o unit.json) (--id-prefix  https://our-ror.example.edu/)
+
+python manage.py export_units (-o all_units.json) (--id-prefix  https://our-ror.example.edu/)
+```
+## Export data from Jschol
+```
+mysql --defaults-extra-file=~/.passwords/jschol_ro_pw.mysql -s -e "SELECT id, name, type, status FROM units;" > /tmp/all_units.tsv
+mysql --defaults-extra-file=~/.passwords/jschol_ro_pw.mysql -s -e "SELECT unit_id, ancestor_unit as parent FROM unit_hier WHERE is_direct = 1;" > /tmp/all_relations.tsv
 ```
