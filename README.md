@@ -25,7 +25,7 @@ DB_PASSWORD=
 ```
 Run local postgres in docker for development
 ```
-docker run --name postgres -e POSTGRES_PASSWORD=<your-password> -d postgres
+docker run --name postgres -p 5432:5432 -e POSTGRES_PASSWORD=<your-password> -d postgres
 ```
 Install requirements and setup db
 ```
