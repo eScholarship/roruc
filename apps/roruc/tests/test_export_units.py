@@ -1,7 +1,5 @@
 """
 Tests for the export_units management command.
-
-  * make_unit()    - fill in whatever required fields your Unit model has
 """
 
 import json
