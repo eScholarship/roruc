@@ -39,7 +39,7 @@ Run tests
 ```
 python ./manage test
 ```
-## Management commands
+## Import and export
 ```
 python manage.py import_units all_units.tsv all_relations.tsv (--dry-run)
 
